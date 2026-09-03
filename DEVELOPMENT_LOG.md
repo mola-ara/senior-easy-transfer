@@ -188,3 +188,12 @@
 - 원인은 무엇이었는지: 셸 작업 디렉터리가 명령 사이에 그대로 유지된다는 점을 확인하지 않은 채 상대 경로로 삭제 명령을 실행했다.
 - 어떻게 해결했는지: 이번 대화에서 이미 읽었던 파일은 정확한 원본 내용으로 다시 작성했다. 읽지 않았던 파일(도메인 타입, 서비스 계층, 유효성 검증, 홈 투어, 금액·받는 분·안전 확인·최종 확인·오송금 안내·자주 보내는 분·최근 내역·연습 페이지)은 `docs/PRODUCT_BRIEF.md` 명세와 살아남은 `globals.css`의 클래스 구조를 근거로 다시 작성했다. 이후 삭제가 필요한 작업은 절대 경로로 대상을 재확인한 뒤에만 실행하기로 했다.
 - 확인 결과: `tsc --noEmit` 오류 0건, `eslint` 오류 0건. `next build`에서 정적 생성 중 `/transfer/review`, `/transfer/safety`가 렌더링 중 `router.replace()`를 직접 호출해 `location is not defined` 오류를 냈고, 이를 `useEffect` 안으로 옮겨 해결한 뒤 17개 경로 모두 정적 생성에 성공했다. 프로덕션 서버 기동 후 처음 화면을 포함한 13개 핵심 경로 모두 HTTP 200을 확인했다. 다만 다시 작성된 페이지의 세부 로직(금액 위험 신호 기준, 홈 투어 진행 방식 등)은 원본과 완전히 동일하다는 보장이 없어 실제 화면에서 추가 확인이 필요하다.
+
+## 2026-09-03 — GitHub·Vercel 연결
+
+- 무엇을 만들었는지: 잘못된 위치(상위 폴더)에 있던 git 저장소를 실제 프로젝트 폴더로 옮기고, GitHub 공개 저장소를 생성해 push했다. Vercel 배포까지 연결하고 문서에 배포 링크를 반영했다.
+- 어떤 기술을 사용했는지: GitHub CLI(`gh repo create --source=. --push`), Vercel(웹 UI, Root Directory를 `frontend`로 지정)을 사용했다.
+- 어떤 문제였는지: 첫 커밋이 `senior-easy-trasnfer`가 아니라 그 상위 폴더를 저장소 루트로 잡고 있어서, 그대로 push하면 GitHub에서 README가 저장소 홈에 바로 보이지 않는 구조가 될 뻔했다.
+- 원인은 무엇이었는지: 이전 세션에서 상위 폴더에 이미 git이 초기화되어 있었고(Git 저장소 소유권 경고로 인해 그대로 두기로 했던 이력), 이번 세션에서도 그 위치 그대로 커밋을 진행했다.
+- 어떻게 해결했는지: 아직 원격 연결 전(로컬 커밋 1개뿐)이라는 점을 확인한 뒤, 프로젝트 폴더 안에 새로 `git init`하고 동일한 내용으로 다시 커밋했다. 상위 폴더의 기존 `.git`은 삭제했다. 이후 `gh repo create`로 `senior-easy-transfer` 공개 저장소를 만들고 push했다.
+- 확인 결과: `https://github.com/mola-ara/senior-easy-transfer`에 정상 push됨을 확인했다. Vercel에 Root Directory를 `frontend`로 지정해 배포했고, `https://senior-easy-transfer-ya2w.vercel.app/`가 HTTP 200으로 응답함을 확인했다.

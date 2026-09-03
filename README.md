@@ -4,7 +4,7 @@
 
 > 실제 은행, 금융망, 개인정보와 연결되지 않습니다. 모든 사용자·계좌·잔액·거래는 가상 데이터입니다.
 
-기획·개발: 바다소나무 · [포트폴리오에서 보기](https://badasonamu-portfolio.vercel.app/projects/senior-easy-transfer)
+기획·개발: 바다소나무 · [포트폴리오에서 보기](https://badasonamu-portfolio.vercel.app/projects/senior-easy-transfer) · [Live Demo](https://senior-easy-transfer-ya2w.vercel.app/)
 
 ## 무엇을 만들었나요
 
