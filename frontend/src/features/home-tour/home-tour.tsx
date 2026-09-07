@@ -1,8 +1,12 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { ChevronLeft, Volume2, VolumeX, X } from "lucide-react";
 import type { HomeTourStep } from "./tour-data";
 import { StartCue } from "@/components/ui";
+
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 const SENTENCE_PATTERN = /[^.!?]+[.!?]?/g;
 
@@ -38,16 +42,56 @@ export function HomeTour({
   const isLastStep = stepIndex === totalSteps;
   const isCentered = step.target === "welcome" || step.target === "complete";
   const sentences = splitDescriptionIntoSentences(step.description);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    dialogRef.current?.focus();
+  }, [step]);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab") return;
+
+      const focusable = dialog!.querySelectorAll<HTMLElement>(
+        FOCUSABLE_SELECTOR,
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    dialog.addEventListener("keydown", handleKeyDown);
+    return () => dialog.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   return (
     <div className="tour-layer">
       <div className="tour-shade" />
       <div
+        ref={dialogRef}
         className={
           isCentered
             ? "tour-dialog tour-dialog-center"
             : "tour-dialog tour-dialog-guided"
         }
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tour-dialog-title"
         tabIndex={-1}
       >
         <div className="tour-meta">
@@ -64,7 +108,7 @@ export function HomeTour({
             <span key={index} className={index <= stepIndex ? "on" : ""} />
           ))}
         </div>
-        <h2>{step.title}</h2>
+        <h2 id="tour-dialog-title">{step.title}</h2>
         <p>
           {sentences.map((sentence) => (
             <span className="tour-sentence" key={sentence}>

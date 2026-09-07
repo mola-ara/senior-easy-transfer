@@ -238,3 +238,20 @@
 - 어떤 문제였는지: 지금까지는 `TransferRecord`(사용자에게 보이는 내역)만 있고, 시도 자체에 대한 별도 기록이 없었다. 실제 금융 서비스는 성공한 거래뿐 아니라 시도 자체를 규제·사후 검증 목적으로 남겨야 한다.
 - 어떻게 해결했는지: `submitTransfer` 안에서 거래 기록을 만들기 전에 `logTransferAttempt`를 호출해 별도 배열에 감사 기록을 남기도록 했다. 감사 기록은 사용자 내역(`TransferRecord`)과 분리된 관심사로 두어, 나중에 화면에는 안 보여주고 운영자만 보는 용도로 확장하기 쉽게 했다. 현재는 실패 경로가 없어 `result`가 항상 `"success"`이며, 이 지점에 실패 상태를 나중에 추가할 수 있다고 코드에 남겨두었다.
 - 확인 결과: 신규 단위 테스트(감사 로그 자체 3건, `submitTransfer`가 감사 로그를 남기는지 1건) 포함 테스트 24개 전부 통과. `lint`, `typecheck`, `next build` 모두 통과. 화면 UI는 변경하지 않았다.
+
+## 2026-09-07 — CI 파이프라인 추가
+
+- 무엇을 만들었는지: `main` push·PR마다 `lint → typecheck → test → build`를 자동 실행하는 GitHub Actions 워크플로(`.github/workflows/ci.yml`)를 추가했다.
+- 어떤 문제였는지: 저장소에 CI가 전혀 없어서, 방금 추가한 단위 테스트도 로컬에서 수동으로 돌릴 때만 의미가 있었다. 자동으로 강제되지 않는 테스트는 시간이 지나면 깨져도 아무도 모르게 된다.
+- 어떻게 해결했는지: `actions/setup-node`로 Node 20, npm 캐시를 구성하고 `frontend/`를 작업 디렉터리로 지정해 4단계 검증을 순서대로 실행하도록 했다.
+- 어떤 문제였는지(부록): 로컬에서 `npm ci`를 검증차 실행하다가 Windows 파일 잠금(EPERM)으로 `node_modules`가 일부 삭제됐다. `npm install`로 복구했고, `package.json`/`package-lock.json`은 변경 없이 원상태로 돌아왔다.
+- 확인 결과: 워크플로 YAML 문법 검증 통과. 로컬에서 lint·typecheck·test 24개·build 모두 재확인. GitHub Actions 실행 결과는 push 후 Actions 탭에서 확인 필요.
+
+## 2026-09-07 — 접근성(KWCAG) 점검과 수정
+
+- 무엇을 확인했는지: Lighthouse 자동 검사와 코드 직접 리뷰로 KWCAG 2.2 관점의 접근성 문제를 점검했다.
+- 어떤 기술을 사용했는지: `npx lighthouse`(accessibility 카테고리, 12개 화면 전체), Playwright Core로 실제 브라우저에서 포커스 이동·키보드 트랩·Esc 동작을 검증하는 임시 스크립트.
+- 어떤 문제였는지: 두 가지를 발견했다. (1) 공용 회색 텍스트 색상(`--muted: #64706c`)이 밝은 배경 위에서 명도 대비 4.47:1로 WCAG AA 기준(4.5:1)에 미달했다(홈 화면 `Lighthouse Performance` 아님 `Accessibility` 97점의 원인). (2) 처음 화면 온보딩 투어(`home-tour.tsx`)가 `DEVELOPMENT_LOG`에는 "dialog ARIA 속성, 키보드 포커스 트랩 적용"이라고 기록돼 있었지만, 실제 코드에는 `role`, `aria-modal`, 포커스 트랩, Esc 닫기가 전혀 없었다. `BottomNav`의 `aria-current="page"`도 실제 경로와 무관하게 "처음 화면" 링크에 항상 고정되어 있어, 다른 화면에서도 스크린 리더가 "현재 페이지"라고 잘못 읽었다.
+- 원인은 무엇이었는지: (1)은 디자인 토큰을 정할 때 대비비를 계산하지 않고 정한 것으로 보인다. (2)는 이전 `rm -rf frontend/src` 사고(2026-09-03 로그 참고) 때 유실된 뒤 재작성 과정에서 완전히 복구되지 못한 것으로 보이며, `BottomNav`는 처음부터 정적으로 작성된 것으로 보인다.
+- 어떻게 해결했는지: `--muted`를 `#4f5b56`으로 낮춰 명도 대비를 확보했다(같은 토큰을 쓰는 19곳 모두 함께 개선됨). `home-tour.tsx`에 `role="dialog"`, `aria-modal`, `aria-labelledby`(제목과 연결), 열릴 때·단계 전환마다 포커스 이동, Tab 트랩, Esc 닫기를 추가했다. `BottomNav`는 `usePathname()`으로 실제 현재 경로와 일치할 때만 `aria-current="page"`를 부여하도록 고쳤다.
+- 확인 결과: Lighthouse accessibility 점수가 12개 화면 전부 100점(기존 홈 97점 포함)이 됐다. Playwright로 다이얼로그 role·aria-modal·aria-labelledby 값, 진입 시 포커스 이동, Tab 15회 후에도 포커스가 다이얼로그 밖으로 새지 않음, Esc로 닫힘을 모두 직접 확인했다. `lint`, `typecheck`, `test`(24개), `build` 모두 통과. 이번 점검은 자동 도구 + 온보딩 투어·하단 내비게이션에 대한 수동 확인 범위이며, KWCAG 2.2 AA 전 항목에 대한 공식 인증은 아니다. 다른 화면의 폼 에러 메시지 스크린 리더 안내, 색상 외 정보 전달 여부 등은 아직 항목별로 점검하지 않았다.

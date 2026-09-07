@@ -12,6 +12,7 @@ import {
   Volume2,
   X,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { useAppStore } from "@/store/app-store";
 
@@ -177,17 +178,28 @@ export function StartCue() {
 }
 
 export function BottomNav() {
+  const pathname = usePathname();
   return (
     <nav className="bottom-nav" aria-label="주요 메뉴">
-      <Link href="/history">
+      <Link
+        href="/history"
+        aria-current={pathname === "/history" ? "page" : undefined}
+      >
         <History />
         최근 내역
       </Link>
-      <Link href="/" className="nav-home" aria-current="page">
+      <Link
+        href="/"
+        className="nav-home"
+        aria-current={pathname === "/" ? "page" : undefined}
+      >
         <Home />
         처음 화면
       </Link>
-      <Link href="/favorites">
+      <Link
+        href="/favorites"
+        aria-current={pathname === "/favorites" ? "page" : undefined}
+      >
         <Heart />
         자주 보내는 분
       </Link>
