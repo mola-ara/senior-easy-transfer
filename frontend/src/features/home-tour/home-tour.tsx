@@ -117,14 +117,19 @@ export function HomeTour({
           ))}
         </p>
         <div className="tour-audio-actions">
-          <button type="button" onClick={onSpeak}>
+          <button
+            type="button"
+            onClick={voiceEnabled ? onSpeak : onToggleVoice}
+          >
             <Volume2 />
-            다시 듣기
+            {voiceEnabled ? "다시 듣기" : "음성 안내 시작"}
           </button>
-          <button type="button" onClick={onToggleVoice}>
-            {voiceEnabled ? <VolumeX /> : <Volume2 />}
-            {voiceEnabled ? "음성 끄기" : "음성 켜기"}
-          </button>
+          {voiceEnabled && (
+            <button type="button" onClick={onToggleVoice}>
+              <VolumeX />
+              음성 끄기
+            </button>
+          )}
         </div>
         <div className="tour-actions">
           {isLastStep ? (

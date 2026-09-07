@@ -27,7 +27,7 @@ export default function HomePage() {
   const { startTransfer, speak } = useAppStore();
   const [tourOpen, setTourOpen] = useState(false);
   const [tourStep, setTourStep] = useState(0);
-  const [tourVoice, setTourVoice] = useState(true);
+  const [tourVoice, setTourVoice] = useState(false);
   const balanceRef = useRef<HTMLElement>(null);
   const transferRef = useRef<HTMLElement>(null);
   const shortcutsRef = useRef<HTMLElement>(null);
@@ -61,7 +61,7 @@ export default function HomePage() {
   const openTour = () => {
     stopVoice();
     setTourStep(0);
-    setTourVoice(true);
+    setTourVoice(false);
     setTourOpen(true);
   };
   const startPractice = () => {

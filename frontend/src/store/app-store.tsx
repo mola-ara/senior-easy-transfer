@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { usePathname } from "next/navigation";
+import { useSpeechGuide } from "@/hooks/use-speech-guide";
 import type {
   AccessibilitySettings,
   Recipient,
@@ -44,6 +45,7 @@ const AppStore = createContext<AppStoreValue | null>(null);
 
 export function AppStoreProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const speak = useSpeechGuide();
   const [draft, setDraft] = useState<TransferDraft>(emptyDraft);
   const [receipt, setReceipt] = useState<TransferRecord | null>(null);
   const [settings, setSettings] = useState<AccessibilitySettings>({
@@ -64,23 +66,12 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const speak = (text: string): void => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "ko-KR";
-    utterance.rate = 0.85;
-    window.speechSynthesis.speak(utterance);
-  };
-
   useEffect(() => {
     if (settings.voiceGuide && pathname !== "/transfer/complete") {
       const title = document.querySelector("h1")?.textContent;
       if (title) speak(`${title} 화면입니다.`);
     }
-    // 경로가 바뀔 때만 새 화면 제목을 안내한다.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, [pathname, settings.voiceGuide, speak]);
 
   const updateSettings = (next: Partial<AccessibilitySettings>): void => {
     setSettings((current) => {
@@ -128,7 +119,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       },
       speak,
     }),
-    [draft, receipt, settings],
+    [draft, receipt, settings, speak],
   );
 
   return <AppStore.Provider value={value}>{children}</AppStore.Provider>;
