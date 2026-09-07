@@ -5,28 +5,37 @@ import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Header, Page, Step } from "@/components/ui";
 import { formatWon } from "@/lib/format";
+import { saveLatestReceipt } from "@/lib/receipt-storage";
 import { submitTransfer } from "@/services/transfer-service";
 import { useAppStore } from "@/store/app-store";
 
 export default function ReviewPage() {
   const router = useRouter();
-  const { draft, setReceipt, resetDraft } = useAppStore();
-  const [checked, setChecked] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const { draft, setReceipt } = useAppStore();
+  const [isRecipientChecked, setIsRecipientChecked] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   useEffect(() => {
-    if (!draft.recipient || draft.amount <= 0) router.replace("/transfer/recipient");
+    if (!draft.recipient || draft.amount <= 0)
+      router.replace("/transfer/recipient");
   }, [draft.recipient, draft.amount, router]);
 
   if (!draft.recipient || draft.amount <= 0) return null;
   const recipient = draft.recipient;
 
-  const send = async () => {
+  const handleSend = async () => {
     const record = await submitTransfer(draft.mode, recipient, draft.amount);
+    saveLatestReceipt(record);
     setReceipt(record);
-    resetDraft();
-    router.push("/transfer/complete");
+    router.replace("/transfer/complete");
   };
+
+  const handleRecipientCheck = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setIsRecipientChecked(event.target.checked);
+  };
+
+  const handleOpenConfirmation = () => setIsConfirmOpen(true);
+  const handleCloseConfirmation = () => setIsConfirmOpen(false);
 
   return (
     <>
@@ -53,8 +62,8 @@ export default function ReviewPage() {
         <label className="review-recipient-check">
           <input
             type="checkbox"
-            checked={checked}
-            onChange={(event) => setChecked(event.target.checked)}
+            checked={isRecipientChecked}
+            onChange={handleRecipientCheck}
           />
           <span>
             <strong>{recipient.name} 님이 맞아요</strong>
@@ -67,19 +76,16 @@ export default function ReviewPage() {
           <button
             type="button"
             className="button primary"
-            disabled={!checked}
-            onClick={() => setConfirmOpen(true)}
+            disabled={!isRecipientChecked}
+            onClick={handleOpenConfirmation}
           >
             {draft.mode === "practice" ? "연습 송금 보내기" : "송금 보내기"}
           </button>
         </div>
       </Page>
-      {confirmOpen && (
+      {isConfirmOpen && (
         <div className="confirm-layer">
-          <div
-            className="confirm-backdrop"
-            onClick={() => setConfirmOpen(false)}
-          />
+          <div className="confirm-backdrop" onClick={handleCloseConfirmation} />
           <div className="confirm-dialog">
             <Check />
             <h2>
@@ -94,11 +100,15 @@ export default function ReviewPage() {
               <button
                 type="button"
                 className="button secondary"
-                onClick={() => setConfirmOpen(false)}
+                onClick={handleCloseConfirmation}
               >
                 아니요
               </button>
-              <button type="button" className="button primary" onClick={send}>
+              <button
+                type="button"
+                className="button primary"
+                onClick={handleSend}
+              >
                 예, 보낼게요
               </button>
             </div>

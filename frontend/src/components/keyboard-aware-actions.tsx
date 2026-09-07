@@ -2,34 +2,35 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 
-function isFieldElement(target: EventTarget | null): boolean {
-  return (
-    target instanceof HTMLElement &&
-    ["INPUT", "SELECT", "TEXTAREA"].includes(target.tagName)
-  );
-}
+const KEYBOARD_HEIGHT_THRESHOLD_PX = 150;
 
 export function KeyboardAwareActions({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState(false);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   useEffect(() => {
-    const handleFocusIn = (event: FocusEvent) => {
-      if (isFieldElement(event.target)) setOpen(true);
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+
+    const handleViewportChange = () => {
+      const keyboardHeight = window.innerHeight - viewport.height;
+      setIsKeyboardOpen(keyboardHeight > KEYBOARD_HEIGHT_THRESHOLD_PX);
     };
-    const handleFocusOut = (event: FocusEvent) => {
-      if (isFieldElement(event.target)) setOpen(false);
-    };
-    document.addEventListener("focusin", handleFocusIn);
-    document.addEventListener("focusout", handleFocusOut);
+
+    handleViewportChange();
+    viewport.addEventListener("resize", handleViewportChange);
+    viewport.addEventListener("scroll", handleViewportChange);
+
     return () => {
-      document.removeEventListener("focusin", handleFocusIn);
-      document.removeEventListener("focusout", handleFocusOut);
+      viewport.removeEventListener("resize", handleViewportChange);
+      viewport.removeEventListener("scroll", handleViewportChange);
     };
   }, []);
 
   return (
     <div
-      className={open ? "keyboard-actions keyboard-open" : "keyboard-actions"}
+      className={
+        isKeyboardOpen ? "keyboard-actions keyboard-open" : "keyboard-actions"
+      }
     >
       {children}
     </div>

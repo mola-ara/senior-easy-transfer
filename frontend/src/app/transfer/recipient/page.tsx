@@ -29,7 +29,11 @@ export default function RecipientPage() {
           <br />
           보내드릴까요?
         </h1>
-        <p className="lead">자주 보내는 분과 최근 보낸 분이에요.</p>
+        <p className="lead">
+          보낼 분을 선택해 주세요.
+          <br />
+          직접 입력할 수도 있어요.
+        </p>
         <div className="person-list">
           {recipients.map((recipient) => (
             <button
@@ -55,7 +59,7 @@ export default function RecipientPage() {
           ))}
         </div>
         <p className="manual-link">
-          <a href="/transfer/account">계좌를 직접 입력할게요</a>
+          <a href="/transfer/account">계좌번호를 내가 입력할래요</a>
         </p>
       </Page>
       {pending && (
@@ -64,7 +68,8 @@ export default function RecipientPage() {
           <div className="confirm-dialog">
             <Check />
             <h2>
-              {pending.name} 님이
+              <strong className="confirm-person-name">{pending.name} 님</strong>
+              이
               <br />
               맞나요?
             </h2>

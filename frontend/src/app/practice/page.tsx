@@ -28,15 +28,15 @@ export default function PracticePage() {
           <br />
           먼저 연습해요
         </h1>
-        <p className="lead">화면에 보이는 모든 정보는 가상이에요.</p>
+        <p className="lead">실제 돈 없이 순서대로 따라 해보세요.</p>
         <div className="practice-points">
           <div>
             <span className="mode-icon">
               <ShieldCheck />
             </span>
             <div>
-              <strong>모두 가상 정보예요</strong>
-              <small>실제 계좌와 돈은 움직이지 않아요.</small>
+              <strong>송금을 연습해요</strong>
+              <small>실제 돈은 움직이지 않아요.</small>
             </div>
           </div>
           <div>

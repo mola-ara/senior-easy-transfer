@@ -2,6 +2,13 @@
 
 import { ChevronLeft, Volume2, VolumeX, X } from "lucide-react";
 import type { HomeTourStep } from "./tour-data";
+import { StartCue } from "@/components/ui";
+
+const SENTENCE_PATTERN = /[^.!?]+[.!?]?/g;
+
+function splitDescriptionIntoSentences(description: string): string[] {
+  return description.match(SENTENCE_PATTERN) ?? [description];
+}
 
 interface HomeTourProps {
   step: HomeTourStep;
@@ -28,15 +35,16 @@ export function HomeTour({
   onStartPractice,
   onSpeak,
 }: HomeTourProps) {
-  const isLast = stepIndex === totalSteps;
-  const centered = step.target === "welcome" || step.target === "complete";
+  const isLastStep = stepIndex === totalSteps;
+  const isCentered = step.target === "welcome" || step.target === "complete";
+  const sentences = splitDescriptionIntoSentences(step.description);
 
   return (
     <div className="tour-layer">
       <div className="tour-shade" />
       <div
         className={
-          centered
+          isCentered
             ? "tour-dialog tour-dialog-center"
             : "tour-dialog tour-dialog-guided"
         }
@@ -52,13 +60,17 @@ export function HomeTour({
           </button>
         </div>
         <div className="tour-progress">
-          {Array.from({ length: totalSteps }).map((_, index) => (
-            <span key={index} className={index < stepIndex ? "on" : ""} />
+          {Array.from({ length: totalSteps + 1 }).map((_, index) => (
+            <span key={index} className={index <= stepIndex ? "on" : ""} />
           ))}
         </div>
         <h2>{step.title}</h2>
         <p>
-          <span className="tour-sentence">{step.description}</span>
+          {sentences.map((sentence) => (
+            <span className="tour-sentence" key={sentence}>
+              {sentence.trim()}
+            </span>
+          ))}
         </p>
         <div className="tour-audio-actions">
           <button type="button" onClick={onSpeak}>
@@ -71,14 +83,22 @@ export function HomeTour({
           </button>
         </div>
         <div className="tour-actions">
-          {isLast ? (
-            <button
-              type="button"
-              className="tour-understood start-button-glow"
-              onClick={onStartPractice}
-            >
-              연습 송금 시작하기
-            </button>
+          {isLastStep ? (
+            <>
+              <StartCue />
+              <div className="tour-complete-actions">
+                <button
+                  type="button"
+                  className="tour-understood start-button-glow"
+                  onClick={onStartPractice}
+                >
+                  연습 시작하기
+                </button>
+                <button type="button" className="tour-back" onClick={onClose}>
+                  처음 화면으로 이동
+                </button>
+              </div>
+            </>
           ) : (
             <div className="tour-actions-row">
               <button

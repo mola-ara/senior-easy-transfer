@@ -8,3 +8,6 @@ npm-debug.log*
 server.log
 server-error.log
 *.tsbuildinfo
+ui-audit/
+ui-audit-fixed/
+ui-audit-mobile/

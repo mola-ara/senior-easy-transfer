@@ -25,7 +25,9 @@ export default function SafetyPage() {
 
   useEffect(() => {
     if (!draft.recipient || draft.risks.length === 0) {
-      router.replace(draft.recipient ? "/transfer/review" : "/transfer/recipient");
+      router.replace(
+        draft.recipient ? "/transfer/review" : "/transfer/recipient",
+      );
     }
   }, [draft.recipient, draft.risks, router]);
 

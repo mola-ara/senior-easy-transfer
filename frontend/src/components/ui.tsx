@@ -125,10 +125,15 @@ export function SecondaryLink({
 
 export function PrimaryButton({
   children,
+  className,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement>) {
+  const buttonClassName = className
+    ? `button primary ${className}`
+    : "button primary";
+
   return (
-    <button className="button primary" {...props}>
+    <button className={buttonClassName} {...props}>
       {children}
       {!props.disabled && <ChevronRight aria-hidden />}
     </button>

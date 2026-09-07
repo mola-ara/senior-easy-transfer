@@ -1,14 +1,34 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AlertTriangle, Check, VolumeX } from "lucide-react";
 import { Header, Page, PrimaryLink, SecondaryLink } from "@/components/ui";
 import { formatDate, formatWon } from "@/lib/format";
 import { useAppStore } from "@/store/app-store";
+import type { TransferRecord } from "@/domain/types";
+import { loadLatestReceipt } from "@/lib/receipt-storage";
+
+function useCompletedReceipt(receipt: TransferRecord | null) {
+  const [savedReceipt, setSavedReceipt] = useState<TransferRecord | null>(null);
+  const [hasCheckedStorage, setHasCheckedStorage] = useState(false);
+
+  useEffect(() => {
+    const latestReceipt = loadLatestReceipt();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSavedReceipt(latestReceipt);
+    setHasCheckedStorage(true);
+  }, []);
+
+  return {
+    completedReceipt: receipt ?? savedReceipt,
+    hasCheckedStorage,
+  };
+}
 
 export default function CompletePage() {
   const { receipt, speak } = useAppStore();
-  const voiceText = receipt
-    ? `${receipt.recipient.name} 님에게 ${formatWon(receipt.amount)} 송금 연습을 잘 마쳤어요.`
+  const { completedReceipt, hasCheckedStorage } = useCompletedReceipt(receipt);
+  const voiceText = completedReceipt
+    ? `${completedReceipt.recipient.name} 님에게 ${formatWon(completedReceipt.amount)} 송금 연습을 잘 마쳤어요.`
     : "";
 
   useEffect(() => {
@@ -19,7 +39,10 @@ export default function CompletePage() {
     };
   }, [speak, voiceText]);
 
-  if (!receipt)
+  const handleStopVoiceGuide = () => window.speechSynthesis?.cancel();
+
+  if (!completedReceipt && !hasCheckedStorage) return null;
+  if (!completedReceipt)
     return (
       <>
         <Header backHref="/" title="송금 완료" />
@@ -38,16 +61,18 @@ export default function CompletePage() {
           <Check />
         </div>
         <p className="eyebrow">
-          {receipt.mode === "practice" ? "연습 성공" : "송금 완료"}
+          {completedReceipt.mode === "practice" ? "연습 성공" : "송금 완료"}
         </p>
-        <h1>{receipt.recipient.name} 님에게 잘 보냈어요</h1>
+        <h1>성공했어요!</h1>
         <p className="lead">
-          {formatWon(receipt.amount)} · {formatDate(receipt.transferredAt)}
+          {completedReceipt.recipient.name} 님에게{" "}
+          {formatWon(completedReceipt.amount)}
+          <br />잘 보냈어요 · {formatDate(completedReceipt.transferredAt)}
         </p>
         <button
           type="button"
           className="complete-voice-stop"
-          onClick={() => window.speechSynthesis?.cancel()}
+          onClick={handleStopVoiceGuide}
         >
           <VolumeX />
           음성 안내 끄기
@@ -55,20 +80,21 @@ export default function CompletePage() {
         <section className="summary" aria-label="송금 영수증">
           <div className="summary-row">
             <span>받는 분</span>
-            <strong>{receipt.recipient.name}</strong>
+            <strong>{completedReceipt.recipient.name}</strong>
           </div>
           <div className="summary-row account-row">
             <span>받는 계좌</span>
             <strong>
-              {receipt.recipient.bankName} · {receipt.recipient.accountNumber}
+              {completedReceipt.recipient.bankName} ·{" "}
+              {completedReceipt.recipient.accountNumber}
             </strong>
           </div>
           <div className="summary-row">
             <span>보낸 금액</span>
-            <strong>{formatWon(receipt.amount)}</strong>
+            <strong>{formatWon(completedReceipt.amount)}</strong>
           </div>
         </section>
-        <p className="receipt-id">송금 연습 · 영수증 {receipt.id}</p>
+        <p className="receipt-id">송금 연습 · 영수증 {completedReceipt.id}</p>
         <a href="/transfer/help" className="wrong-transfer-button">
           <AlertTriangle />
           잘못 보냈어요
