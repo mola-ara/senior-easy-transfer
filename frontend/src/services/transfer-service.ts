@@ -1,4 +1,5 @@
 import { primaryAccount, recipients, initialHistory } from "@/mocks/data";
+import { logTransferAttempt } from "./transfer-audit-log";
 import type {
   Account,
   Recipient,
@@ -39,6 +40,16 @@ export async function submitTransfer(
   recipient: Recipient,
   amount: number,
 ): Promise<TransferRecord> {
+  // submitTransfer는 아직 실패 경로가 없어 result가 항상 "success"다.
+  // 실패·대기 상태가 생기면 이 지점에서 감사 로그의 result를 분기한다.
+  logTransferAttempt({
+    recipientId: recipient.id,
+    amount,
+    mode,
+    risks: calculateRisks(recipient, amount),
+    result: "success",
+  });
+
   const record: TransferRecord = {
     id: `TR-${Date.now()}`,
     recipient,
