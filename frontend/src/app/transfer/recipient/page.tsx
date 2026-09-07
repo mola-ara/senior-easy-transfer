@@ -68,8 +68,8 @@ export default function RecipientPage() {
           <div className="confirm-dialog">
             <Check />
             <h2>
-              <strong className="confirm-person-name">{pending.name} 님</strong>
-              이
+              <strong className="confirm-person-name">{pending.name}</strong>
+              님이
               <br />
               맞나요?
             </h2>
