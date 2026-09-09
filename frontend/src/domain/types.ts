@@ -37,7 +37,15 @@ export interface TransferRecord {
   transferredAt: string;
 }
 
-export interface AccessibilitySettings {
-  largeText: boolean;
-  voiceGuide: boolean;
+export type GuidanceLevel = "detailed" | "essential" | "standard";
+
+export type SupportedLanguage = "ko" | "en";
+
+export interface AssistanceProfile {
+  guidanceLevel: GuidanceLevel;
+  preferredLanguage: SupportedLanguage;
+  textScale: "default" | "large";
+  isVoiceGuideEnabled: boolean;
+  isHighContrastEnabled: boolean;
+  isReducedMotionEnabled: boolean;
 }

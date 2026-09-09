@@ -59,6 +59,22 @@ a {
 .large-text {
   font-size: 21px;
 }
+.high-contrast {
+  --sea: #005b91;
+  --sea-dark: #002f4d;
+  --sea-light: #d8efff;
+  --cream: #fff;
+  --ink: #000;
+  --muted: #303030;
+  --line: #5a5a5a;
+}
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation: none !important;
+  scroll-behavior: auto !important;
+  transition: none !important;
+}
 .topbar {
   min-height: 72px;
   background: #fff;
@@ -1782,4 +1798,54 @@ p {
     animation: none !important;
     opacity: 1;
   }
+}
+
+.guidance-options {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.guidance-options legend {
+  margin-bottom: 14px;
+  font-size: 22px;
+  font-weight: 800;
+}
+.guidance-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 17px;
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+  cursor: pointer;
+}
+.guidance-option:has(input:checked) {
+  border-color: var(--sea);
+  background: var(--sea-light);
+}
+.guidance-option input {
+  width: 22px;
+  height: 22px;
+  margin: 2px 0 0;
+  accent-color: var(--sea);
+}
+.guidance-option strong,
+.guidance-option small {
+  display: block;
+}
+.guidance-option small {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.storage-error {
+  padding: 14px;
+  border: 2px solid #9b3d32;
+  border-radius: 14px;
+  color: #762a22;
+  background: #fff3f1;
 }

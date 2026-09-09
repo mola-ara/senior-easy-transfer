@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   createContext,
   useContext,
   useEffect,
@@ -11,12 +12,17 @@ import {
 import { usePathname } from "next/navigation";
 import { useSpeechGuide } from "@/hooks/use-speech-guide";
 import type {
-  AccessibilitySettings,
+  AssistanceProfile,
   Recipient,
   TransferDraft,
   TransferRecord,
   TransferMode,
 } from "@/domain/types";
+import {
+  DEFAULT_ASSISTANCE_PROFILE,
+  loadAssistanceProfile,
+  saveAssistanceProfile,
+} from "@/lib/assistance-profile-storage";
 
 const emptyDraft: TransferDraft = {
   mode: "practice",
@@ -28,7 +34,7 @@ const emptyDraft: TransferDraft = {
 
 interface AppStoreValue {
   draft: TransferDraft;
-  settings: AccessibilitySettings;
+  assistanceProfile: AssistanceProfile;
   receipt: TransferRecord | null;
   startTransfer: (mode: TransferMode) => void;
   setRecipient: (recipient: Recipient) => void;
@@ -36,7 +42,7 @@ interface AppStoreValue {
   setRisks: (risks: TransferDraft["risks"]) => void;
   confirmSafety: () => void;
   setReceipt: (receipt: TransferRecord | null) => void;
-  updateSettings: (settings: Partial<AccessibilitySettings>) => void;
+  updateAssistanceProfile: (profile: Partial<AssistanceProfile>) => boolean;
   resetDraft: () => void;
   speak: (text: string) => void;
 }
@@ -48,46 +54,39 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const speak = useSpeechGuide();
   const [draft, setDraft] = useState<TransferDraft>(emptyDraft);
   const [receipt, setReceipt] = useState<TransferRecord | null>(null);
-  const [settings, setSettings] = useState<AccessibilitySettings>({
-    largeText: false,
-    voiceGuide: false,
-  });
+  const [assistanceProfile, setAssistanceProfile] = useState<AssistanceProfile>(
+    DEFAULT_ASSISTANCE_PROFILE,
+  );
 
   useEffect(() => {
-    const saved = window.localStorage.getItem("bada-accessibility");
-    if (saved) {
-      try {
-        // 브라우저 저장값을 첫 마운트 후 복원한다.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSettings(JSON.parse(saved) as AccessibilitySettings);
-      } catch {
-        /* 잘못된 로컬 값은 기본값을 사용한다. */
-      }
-    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAssistanceProfile(loadAssistanceProfile(window.localStorage));
   }, []);
 
   useEffect(() => {
-    if (settings.voiceGuide && pathname !== "/transfer/complete") {
+    if (
+      assistanceProfile.isVoiceGuideEnabled &&
+      pathname !== "/transfer/complete"
+    ) {
       const title = document.querySelector("h1")?.textContent;
       if (title) speak(`${title} 화면입니다.`);
     }
-  }, [pathname, settings.voiceGuide, speak]);
+  }, [pathname, assistanceProfile.isVoiceGuideEnabled, speak]);
 
-  const updateSettings = (next: Partial<AccessibilitySettings>): void => {
-    setSettings((current) => {
-      const updated = { ...current, ...next };
-      window.localStorage.setItem(
-        "bada-accessibility",
-        JSON.stringify(updated),
-      );
-      return updated;
-    });
-  };
+  const updateAssistanceProfile = useCallback(
+    (next: Partial<AssistanceProfile>): boolean => {
+      const updated = { ...assistanceProfile, ...next };
+      const isSaved = saveAssistanceProfile(window.localStorage, updated);
+      setAssistanceProfile(updated);
+      return isSaved;
+    },
+    [assistanceProfile],
+  );
 
   const value = useMemo<AppStoreValue>(
     () => ({
       draft,
-      settings,
+      assistanceProfile,
       receipt,
       startTransfer: (mode) => {
         setDraft({ ...emptyDraft, mode });
@@ -112,14 +111,14 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       confirmSafety: () =>
         setDraft((current) => ({ ...current, safetyConfirmed: true })),
       setReceipt,
-      updateSettings,
+      updateAssistanceProfile,
       resetDraft: () => {
         setDraft(emptyDraft);
         setReceipt(null);
       },
       speak,
     }),
-    [draft, receipt, settings, speak],
+    [assistanceProfile, draft, receipt, speak, updateAssistanceProfile],
   );
 
   return <AppStore.Provider value={value}>{children}</AppStore.Provider>;

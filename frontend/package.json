@@ -11,6 +11,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "audit:ui": "node scripts/audit-ui.mjs",
+    "test:e2e": "node scripts/v1-e2e-baseline.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

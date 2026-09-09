@@ -9,7 +9,7 @@ import { useAppStore } from "@/store/app-store";
 
 export default function SetupPage() {
   const router = useRouter();
-  const { settings, updateSettings, speak } = useAppStore();
+  const { assistanceProfile, updateAssistanceProfile, speak } = useAppStore();
   const [ready, setReady] = useState(false);
 
   const handOff = () => {
@@ -77,10 +77,17 @@ export default function SetupPage() {
           <button
             type="button"
             role="switch"
-            aria-checked={settings.largeText}
+            aria-checked={assistanceProfile.textScale === "large"}
             aria-label="글씨 크게 보기"
-            className={settings.largeText ? "switch on" : "switch"}
-            onClick={() => updateSettings({ largeText: !settings.largeText })}
+            className={
+              assistanceProfile.textScale === "large" ? "switch on" : "switch"
+            }
+            onClick={() =>
+              updateAssistanceProfile({
+                textScale:
+                  assistanceProfile.textScale === "large" ? "default" : "large",
+              })
+            }
           >
             <span />
           </button>
@@ -95,10 +102,16 @@ export default function SetupPage() {
           <button
             type="button"
             role="switch"
-            aria-checked={settings.voiceGuide}
+            aria-checked={assistanceProfile.isVoiceGuideEnabled}
             aria-label="음성으로 설명하기"
-            className={settings.voiceGuide ? "switch on" : "switch"}
-            onClick={() => updateSettings({ voiceGuide: !settings.voiceGuide })}
+            className={
+              assistanceProfile.isVoiceGuideEnabled ? "switch on" : "switch"
+            }
+            onClick={() =>
+              updateAssistanceProfile({
+                isVoiceGuideEnabled: !assistanceProfile.isVoiceGuideEnabled,
+              })
+            }
           >
             <span />
           </button>

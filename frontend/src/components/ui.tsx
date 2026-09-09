@@ -17,12 +17,16 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { useAppStore } from "@/store/app-store";
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { settings } = useAppStore();
-  return (
-    <div className={settings.largeText ? "app large-text" : "app"}>
-      {children}
-    </div>
-  );
+  const { assistanceProfile } = useAppStore();
+  const classNames = [
+    "app",
+    assistanceProfile.textScale === "large" ? "large-text" : "",
+    assistanceProfile.isHighContrastEnabled ? "high-contrast" : "",
+    assistanceProfile.isReducedMotionEnabled ? "reduced-motion" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  return <div className={classNames}>{children}</div>;
 }
 
 export function Header({
